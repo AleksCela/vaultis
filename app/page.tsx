@@ -9,7 +9,7 @@ export default function LandingPage() {
           <span className="text-2xl" style={{ color: '#c9a84c' }}>⬡</span>
           <span className="font-serif text-xl tracking-wide" style={{ color: '#c9a84c' }}>Vaultis</span>
         </div>
-        <div className="flex gap-3">
+        <div className="hidden gap-3 sm:flex">
           <Link href="/login" className="btn-ghost text-sm px-4 py-2">Sign In</Link>
           <Link href="/register" className="btn-gold text-sm px-4 py-2">Open Account</Link>
         </div>

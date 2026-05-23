@@ -1,12 +1,12 @@
 import 'dotenv/config'
-import { PrismaClient } from '@prisma/client'
+import * as Prisma from '@prisma/client'
 import { PrismaBetterSqlite3 } from '@prisma/adapter-better-sqlite3'
 import bcrypt from 'bcryptjs'
 import path from 'path'
 
 const dbPath = process.env.DATABASE_URL?.replace('file:', '') ?? './dev.db'
 const adapter = new PrismaBetterSqlite3({ url: path.resolve(dbPath) })
-const prisma = new PrismaClient({ adapter } as ConstructorParameters<typeof PrismaClient>[0])
+const prisma = new Prisma.PrismaClient({ adapter } as ConstructorParameters<typeof Prisma.PrismaClient>[0])
 
 function makeIban(country: string): string {
   const digits2 = Math.floor(Math.random() * 90 + 10).toString()
