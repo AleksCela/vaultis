@@ -1,0 +1,94 @@
+datasource db {
+  provider = "sqlite"
+}
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+model User {
+  id                   String               @id @default(cuid())
+  email                String               @unique
+  passwordHash         String
+  fullName             String
+  iban                 String               @unique
+  balance              Float                @default(30000)
+  country              String               @default("AL")
+  pin                  String
+  createdAt            DateTime             @default(now())
+
+  sentTransactions     Transaction[]        @relation("Sender")
+  receivedTransactions Transaction[]        @relation("Receiver")
+  deviceSessions       DeviceSession[]
+  webAuthnCredentials  WebAuthnCredential[]
+  riskEvents           RiskEvent[]
+}
+
+model Transaction {
+  id             String    @id @default(cuid())
+  senderId       String
+  receiverId     String
+  amount         Float
+  description    String?
+  status         String    @default("PENDING")
+  riskScore      Int       @default(0)
+  riskFlags      String
+  riskAction     String    @default("ALLOW")
+  cooldownEndsAt DateTime?
+  adminNote      String?
+  createdAt      DateTime  @default(now())
+  resolvedAt     DateTime?
+
+  sender         User      @relation("Sender", fields: [senderId], references: [id])
+  receiver       User      @relation("Receiver", fields: [receiverId], references: [id])
+}
+
+model DeviceSession {
+  id           String    @id @default(cuid())
+  userId       String
+  deviceHash   String
+  deviceLabel  String?
+  countryCode  String?
+  trusted      Boolean   @default(false)
+  consentGiven Boolean   @default(false)
+  firstSeen    DateTime  @default(now())
+  lastSeen     DateTime  @default(now())
+
+  user         User      @relation(fields: [userId], references: [id])
+}
+
+model WebAuthnCredential {
+  id           String    @id @default(cuid())
+  userId       String
+  credentialId String    @unique
+  publicKey    String
+  counter      Int       @default(0)
+  createdAt    DateTime  @default(now())
+
+  user         User      @relation(fields: [userId], references: [id])
+}
+
+model WebAuthnChallenge {
+  id           String    @id @default(cuid())
+  userId       String
+  challenge    String
+  createdAt    DateTime  @default(now())
+}
+
+model RiskEvent {
+  id            String    @id @default(cuid())
+  userId        String
+  transactionId String?
+  score         Int
+  flags         String
+  action        String
+  createdAt     DateTime  @default(now())
+
+  user          User      @relation(fields: [userId], references: [id])
+}
+
+model AdminUser {
+  id           String    @id @default(cuid())
+  email        String    @unique
+  passwordHash String
+}
