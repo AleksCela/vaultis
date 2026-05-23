@@ -72,16 +72,16 @@ export default function RiskCard({ score, flags, action }: RiskCardProps) {
 
       <div
         className="rounded-lg px-3 py-2 text-sm"
-        style={{ background: 'rgba(201,168,76,0.08)', border: '1px solid rgba(201,168,76,0.2)' }}
+        style={{ background: 'var(--blue-dim)', border: '1px solid var(--blue-dim2)' }}
       >
         <span className="text-[--text-muted]">Action: </span>
-        <span className="text-[--gold] font-medium">
+        <span style={{ color: 'var(--blue)' }} className="font-medium">
           {ACTION_LABELS[action] || action}
         </span>
       </div>
 
-      <div className="pt-1 border-t" style={{ borderColor: 'rgba(201,168,76,0.1)' }}>
-        <p className="text-xs" style={{ color: '#4a5568' }}>
+      <div className="pt-1 border-t" style={{ borderColor: 'var(--border)' }}>
+        <p className="text-xs" style={{ color: 'var(--text-faint)' }}>
           Risk assessed under GDPR Art. 6(1)(f) — Legitimate interest in fraud prevention &amp; PSD2 SCA compliance.
           No automated decision-making for score ≥ 90 (human review required).
         </p>

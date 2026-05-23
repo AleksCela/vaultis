@@ -22,7 +22,6 @@ export default function SendPage() {
   const [showConsent, setShowConsent] = useState(false)
   const consentChecked = useRef(false)
 
-  // Fingerprint + geolocation consent
   useEffect(() => {
     const consentGiven = sessionStorage.getItem('vaultis_consent')
     if (!consentGiven) {
@@ -33,7 +32,6 @@ export default function SendPage() {
   }, [])
 
   async function initDevice() {
-    // Hash fingerprint client-side
     try {
       const FP = await import('@fingerprintjs/fingerprintjs')
       const fp = await FP.load()
@@ -48,7 +46,6 @@ export default function SendPage() {
       // Device hash not available — treated as unknown device (higher risk)
     }
 
-    // Cache country in sessionStorage
     const cached = sessionStorage.getItem('vaultis_country')
     if (cached) {
       setDeviceCountry(cached)
@@ -84,19 +81,6 @@ export default function SendPage() {
   function declineConsent() {
     sessionStorage.setItem('vaultis_consent', 'declined')
     setShowConsent(false)
-    // Device treated as unknown (higher risk), user is informed
-  }
-
-  // IBAN lookup
-  async function lookupIban(value: string) {
-    const clean = value.replace(/\s/g, '').toUpperCase()
-    if (clean.length < 10) { setReceiver(null); setIbanError(''); return }
-    const res = await fetch('/api/transactions/initiate', {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ receiverIban: clean, amount: 0.01, deviceHash, deviceCountry, _lookupOnly: true }),
-    })
-    // We use a dedicated lookup endpoint instead
   }
 
   async function handleIbanBlur() {
@@ -129,13 +113,7 @@ export default function SendPage() {
     const res = await fetch('/api/transactions/initiate', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({
-        receiverIban: clean,
-        amount: amountNum,
-        description,
-        deviceHash,
-        deviceCountry,
-      }),
+      body: JSON.stringify({ receiverIban: clean, amount: amountNum, description, deviceHash, deviceCountry }),
     })
     const data = await res.json()
     setLoading(false)
@@ -158,101 +136,119 @@ export default function SendPage() {
   }
 
   return (
-    <div className="px-4 pt-8 space-y-6 max-w-lg mx-auto">
+    <div className="px-4 pt-8 pb-2 space-y-6 max-w-lg mx-auto">
+
       {/* Consent modal */}
       {showConsent && (
-        <div className="fixed inset-0 z-50 flex items-end" style={{ background: 'rgba(0,0,0,0.75)' }}>
-          <div className="w-full rounded-t-2xl p-6 space-y-5 max-h-[90vh] overflow-y-auto" style={{ background: '#111827', border: '1px solid rgba(201,168,76,0.3)', borderBottom: 'none' }}>
-            {/* Header */}
-            <div className="flex items-start gap-3">
-              <span className="text-2xl shrink-0">🇪🇺</span>
-              <div>
-                <h3 className="font-semibold text-base">GDPR Privacy Notice — Fraud Prevention</h3>
-                <p className="text-xs mt-0.5" style={{ color: '#8892a4' }}>
-                  Required before processing your transfer · Art. 6(1)(f) GDPR
-                </p>
-              </div>
+        <div
+          className="fixed inset-0 z-50 flex items-end justify-center"
+          style={{ background: 'rgba(0,0,0,0.55)', backdropFilter: 'blur(4px)' }}
+          onClick={e => { if (e.target === e.currentTarget) declineConsent() }}
+        >
+          <div
+            className="w-full max-w-lg overflow-y-auto"
+            style={{
+              background: 'var(--surface)',
+              borderRadius: '20px 20px 0 0',
+              maxHeight: '88vh',
+              paddingBottom: 'max(20px, env(safe-area-inset-bottom))',
+            }}
+          >
+            {/* Handle bar */}
+            <div className="flex justify-center pt-3 pb-1">
+              <div className="w-10 h-1 rounded-full" style={{ background: 'var(--border-strong)' }} />
             </div>
 
-            {/* What we collect */}
-            <div className="space-y-2">
-              <p className="text-xs font-semibold uppercase tracking-wider" style={{ color: '#c9a84c' }}>What We Collect</p>
-              <div className="space-y-2">
-                <div className="flex items-start gap-3 rounded-lg px-3 py-2.5" style={{ background: 'rgba(201,168,76,0.05)', border: '1px solid rgba(201,168,76,0.15)' }}>
-                  <span className="text-base shrink-0">🔒</span>
-                  <div>
-                    <p className="text-sm font-medium">Device Fingerprint → SHA-256 Hash Only</p>
-                    <p className="text-xs mt-0.5" style={{ color: '#8892a4' }}>
-                      Your device ID is immediately hashed client-side using SHA-256 — a one-way, irreversible operation. The raw ID is never sent or stored. We store only the hash.
-                    </p>
-                  </div>
+            <div className="px-5 pt-3 pb-2">
+              {/* Header */}
+              <div className="flex items-center gap-2 mb-4">
+                <div className="w-9 h-9 rounded-xl flex items-center justify-center shrink-0" style={{ background: 'var(--blue-dim)' }}>
+                  <svg width="16" height="16" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" viewBox="0 0 24 24" style={{ color: 'var(--blue)' }}>
+                    <path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z" />
+                  </svg>
                 </div>
-                <div className="flex items-start gap-3 rounded-lg px-3 py-2.5" style={{ background: 'rgba(201,168,76,0.05)', border: '1px solid rgba(201,168,76,0.15)' }}>
-                  <span className="text-base shrink-0">📍</span>
-                  <div>
-                    <p className="text-sm font-medium">Location → Country Code Only</p>
-                    <p className="text-xs mt-0.5" style={{ color: '#8892a4' }}>
-                      Your GPS coordinates are used solely to resolve your country (e.g. "AL", "DE"). Coordinates are never stored or forwarded. Only the 2-letter country code is retained.
-                    </p>
-                  </div>
+                <div>
+                  <h3 className="font-semibold text-base leading-tight" style={{ color: 'var(--text)' }}>Privacy Notice</h3>
+                  <p className="text-xs" style={{ color: 'var(--text-muted)' }}>Fraud prevention · GDPR Art. 6(1)(f)</p>
                 </div>
               </div>
-            </div>
 
-            {/* Why it matters */}
-            <div className="space-y-2">
-              <p className="text-xs font-semibold uppercase tracking-wider" style={{ color: '#c9a84c' }}>Why This Protects You</p>
-              <div className="grid grid-cols-2 gap-2">
+              {/* Collected data */}
+              <div className="space-y-2 mb-4">
+                <p className="text-xs font-semibold uppercase tracking-wider mb-2" style={{ color: 'var(--text-muted)' }}>What we collect</p>
                 {[
-                  { icon: '📱', label: 'Recognized device', impact: '−20 risk pts' },
-                  { icon: '📍', label: 'Matched location', impact: '−15 risk pts' },
+                  { icon: '🔒', label: 'Device fingerprint', detail: 'SHA-256 hash only — raw ID never stored' },
+                  { icon: '📍', label: 'Your location', detail: 'Country code only (e.g. "DE") — no coordinates stored' },
                 ].map(item => (
-                  <div key={item.label} className="rounded-lg px-3 py-2 text-center" style={{ background: 'rgba(34,197,94,0.06)', border: '1px solid rgba(34,197,94,0.2)' }}>
-                    <span className="text-base">{item.icon}</span>
-                    <p className="text-xs mt-1" style={{ color: '#8892a4' }}>{item.label}</p>
-                    <p className="font-mono text-xs font-semibold mt-0.5" style={{ color: '#22c55e' }}>{item.impact}</p>
+                  <div
+                    key={item.icon}
+                    className="flex items-center gap-3 rounded-xl px-3 py-3"
+                    style={{ background: 'var(--surface-2)', border: '1px solid var(--border)' }}
+                  >
+                    <span className="text-lg shrink-0 leading-none">{item.icon}</span>
+                    <div>
+                      <p className="text-sm font-semibold" style={{ color: 'var(--text)' }}>{item.label}</p>
+                      <p className="text-xs mt-0.5" style={{ color: 'var(--text-muted)' }}>{item.detail}</p>
+                    </div>
                   </div>
                 ))}
               </div>
-              <p className="text-xs" style={{ color: '#8892a4' }}>
-                Device and location data reduce your transaction risk score, enabling faster approvals and fewer step-up challenges.
+
+              {/* Risk benefit */}
+              <div className="rounded-xl px-3 py-3 mb-4" style={{ background: 'var(--green-dim)', border: '1px solid rgba(5,150,105,0.2)' }}>
+                <p className="text-xs font-semibold mb-2" style={{ color: 'var(--green)' }}>Why this helps you</p>
+                <div className="flex gap-4">
+                  <div className="flex items-center gap-1.5">
+                    <span className="font-mono text-xs font-bold" style={{ color: 'var(--green)' }}>−20 pts</span>
+                    <span className="text-xs" style={{ color: 'var(--text-muted)' }}>known device</span>
+                  </div>
+                  <div className="flex items-center gap-1.5">
+                    <span className="font-mono text-xs font-bold" style={{ color: 'var(--green)' }}>−15 pts</span>
+                    <span className="text-xs" style={{ color: 'var(--text-muted)' }}>matched location</span>
+                  </div>
+                </div>
+                <p className="text-xs mt-1.5" style={{ color: 'var(--text-muted)' }}>Lower risk score = fewer verification prompts on transfers.</p>
+              </div>
+
+              {/* Decline warning */}
+              <div className="rounded-xl px-3 py-2.5 mb-4" style={{ background: 'var(--amber-dim)', border: '1px solid rgba(217,119,6,0.2)' }}>
+                <p className="text-xs" style={{ color: 'var(--text-muted)' }}>
+                  <span className="font-semibold" style={{ color: 'var(--amber)' }}>If you decline: </span>
+                  transfers will be treated as higher risk and may require extra PIN steps.
+                </p>
+              </div>
+
+              {/* GDPR footer */}
+              <p className="text-xs mb-4" style={{ color: 'var(--text-faint)' }}>
+                Withdraw anytime via Profile → My Devices · Data retained max 90 days (Art. 5)
               </p>
-            </div>
 
-            {/* If you decline */}
-            <div className="rounded-lg px-3 py-2.5" style={{ background: 'rgba(245,158,11,0.06)', border: '1px solid rgba(245,158,11,0.2)' }}>
-              <p className="text-xs font-semibold mb-1" style={{ color: '#f59e0b' }}>⚠ If You Decline</p>
-              <p className="text-xs" style={{ color: '#8892a4' }}>
-                Your device will be treated as unrecognized (+20 risk pts) and your location as unknown (+15 pts). Transfers are more likely to require PIN or biometric verification.
-              </p>
-            </div>
-
-            {/* GDPR rights */}
-            <div className="rounded-lg px-3 py-2.5 text-xs" style={{ background: 'rgba(201,168,76,0.04)', border: '1px solid rgba(201,168,76,0.12)', color: '#8892a4' }}>
-              <span className="font-semibold" style={{ color: '#c9a84c' }}>Your GDPR Rights: </span>
-              Withdraw consent anytime · Delete device data via Profile → My Devices (Art. 17 Right to Erasure) ·
-              Data retained max 90 days (Art. 5 data minimization) · Legal basis: Art. 6(1)(f) legitimate interest
-            </div>
-
-            <div className="flex gap-3 pt-1">
-              <button onClick={acceptConsent} className="btn-gold flex-1 py-3">Accept & Continue</button>
-              <button onClick={declineConsent} className="btn-ghost flex-1 py-3">Decline</button>
+              {/* Action buttons */}
+              <div className="flex flex-col gap-2">
+                <button onClick={acceptConsent} className="btn-gold w-full">Accept &amp; Continue</button>
+                <button
+                  onClick={declineConsent}
+                  className="w-full py-3 text-sm font-medium rounded-xl"
+                  style={{ color: 'var(--text-muted)', background: 'transparent' }}
+                >
+                  Decline
+                </button>
+              </div>
             </div>
           </div>
         </div>
       )}
 
-      <div className="flex items-center gap-3">
-        <h1 className="font-serif text-2xl">Send Money</h1>
+      <div className="flex items-center justify-between">
+        <h1 className="text-xl font-semibold tracking-tight" style={{ color: 'var(--text)' }}>Send Money</h1>
         {deviceCountry && (
-          <span className="badge badge-green text-xs">{deviceCountry}</span>
+          <span className="badge badge-blue">{deviceCountry}</span>
         )}
       </div>
 
       <form onSubmit={handleSubmit} className="space-y-4">
-        {/* IBAN */}
         <div>
-          <label className="block text-xs font-medium mb-1.5" style={{ color: '#8892a4' }}>Recipient IBAN</label>
+          <label className="block text-xs font-semibold mb-1.5 uppercase tracking-wide" style={{ color: 'var(--text-muted)' }}>Recipient IBAN</label>
           <input
             type="text"
             className="input-field font-mono"
@@ -263,19 +259,20 @@ export default function SendPage() {
             required
           />
           {receiver && (
-            <div className="mt-2 px-3 py-2 rounded-lg flex items-center gap-2" style={{ background: 'rgba(34,197,94,0.08)', border: '1px solid rgba(34,197,94,0.2)' }}>
-              <span className="text-green-400">✓</span>
-              <span className="text-sm font-medium">{receiver.fullName}</span>
+            <div className="mt-2 px-3 py-2.5 rounded-xl flex items-center gap-2" style={{ background: 'var(--green-dim)', border: '1px solid rgba(5,150,105,0.25)' }}>
+              <svg width="14" height="14" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" viewBox="0 0 24 24" style={{ color: 'var(--green)', flexShrink: 0 }}>
+                <polyline points="20 6 9 17 4 12" />
+              </svg>
+              <span className="text-sm font-medium" style={{ color: 'var(--text)' }}>{receiver.fullName}</span>
             </div>
           )}
-          {ibanError && <p className="mt-1 text-xs" style={{ color: '#ef4444' }}>{ibanError}</p>}
+          {ibanError && <p className="mt-1.5 text-xs font-medium" style={{ color: 'var(--red)' }}>{ibanError}</p>}
         </div>
 
-        {/* Amount */}
         <div>
-          <label className="block text-xs font-medium mb-1.5" style={{ color: '#8892a4' }}>Amount (EUR)</label>
+          <label className="block text-xs font-semibold mb-1.5 uppercase tracking-wide" style={{ color: 'var(--text-muted)' }}>Amount (EUR)</label>
           <div className="relative">
-            <span className="absolute left-3 top-1/2 -translate-y-1/2 font-mono text-sm" style={{ color: '#8892a4' }}>€</span>
+            <span className="absolute left-3.5 top-1/2 -translate-y-1/2 font-mono text-sm font-semibold" style={{ color: 'var(--text-muted)' }}>€</span>
             <input
               type="number"
               min="0.01"
@@ -289,9 +286,8 @@ export default function SendPage() {
           </div>
         </div>
 
-        {/* Description */}
         <div>
-          <label className="block text-xs font-medium mb-1.5" style={{ color: '#8892a4' }}>Description (optional)</label>
+          <label className="block text-xs font-semibold mb-1.5 uppercase tracking-wide" style={{ color: 'var(--text-muted)' }}>Description <span style={{ color: 'var(--text-faint)', fontWeight: 400, textTransform: 'none' }}>(optional)</span></label>
           <input
             type="text"
             className="input-field"
@@ -303,23 +299,25 @@ export default function SendPage() {
         </div>
 
         {!deviceHash && !showConsent && (
-          <div className="rounded-lg px-3 py-3 space-y-1" style={{ background: 'rgba(245,158,11,0.07)', border: '1px solid rgba(245,158,11,0.25)' }}>
-            <p className="text-xs font-semibold" style={{ color: '#f59e0b' }}>⚠ Unrecognized Device</p>
-            <p className="text-xs" style={{ color: '#8892a4' }}>
-              This device is not in your trusted list (+20 risk pts). Your transfer may require additional PIN or biometric verification.
-              Register your device via Profile to reduce friction on future transfers.
+          <div className="rounded-xl px-3.5 py-3 space-y-1" style={{ background: 'var(--amber-dim)', border: '1px solid rgba(217,119,6,0.25)' }}>
+            <p className="text-xs font-semibold" style={{ color: 'var(--amber)' }}>⚠ Unrecognized Device</p>
+            <p className="text-xs" style={{ color: 'var(--text-muted)' }}>
+              This device is not in your trusted list (+20 risk pts). Your transfer may require additional verification.
             </p>
           </div>
         )}
 
         {error && (
-          <div className="text-sm px-3 py-2 rounded-lg" style={{ background: 'rgba(239,68,68,0.1)', color: '#ef4444', border: '1px solid rgba(239,68,68,0.2)' }}>
+          <div className="text-sm px-3.5 py-2.5 rounded-xl flex items-center gap-2" style={{ background: 'var(--red-dim)', color: 'var(--red)', border: '1px solid rgba(220,38,38,0.2)' }}>
+            <svg width="14" height="14" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" viewBox="0 0 24 24" style={{ flexShrink: 0 }}>
+              <circle cx="12" cy="12" r="10" /><line x1="12" y1="8" x2="12" y2="12" /><line x1="12" y1="16" x2="12.01" y2="16" />
+            </svg>
             {error}
           </div>
         )}
 
-        <button type="submit" disabled={loading} className="btn-gold w-full py-4 text-base">
-          {loading ? 'Analyzing transfer…' : '↗ Send Transfer'}
+        <button type="submit" disabled={loading} className="btn-gold w-full">
+          {loading ? 'Analyzing transfer…' : 'Send Transfer'}
         </button>
       </form>
     </div>

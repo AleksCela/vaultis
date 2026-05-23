@@ -65,19 +65,19 @@ function CoolingOffInner() {
         <div className="text-center">
           <div className="text-4xl mb-4">⏰</div>
           <h1 className="font-serif text-2xl mb-2">Cooling-Off Period</h1>
-          <p className="text-sm" style={{ color: '#8892a4' }}>
+          <p className="text-sm" style={{ color: 'var(--text-muted)' }}>
             Your transfer is on hold. It will complete automatically when the timer expires.
           </p>
         </div>
 
         {/* Countdown */}
         <div className="card p-6 text-center">
-          <p className="text-xs mb-2 uppercase tracking-wide" style={{ color: '#8892a4' }}>Time remaining</p>
-          <p className="font-mono text-5xl font-semibold" style={{ color: '#c9a84c' }}>
+          <p className="text-xs mb-2 uppercase tracking-wide" style={{ color: 'var(--text-muted)' }}>Time remaining</p>
+          <p className="font-mono text-5xl font-semibold" style={{ color: 'var(--blue)' }}>
             {String(mins).padStart(2, '0')}:{String(secs).padStart(2, '0')}
           </p>
           {tx && (
-            <p className="text-sm mt-3" style={{ color: '#8892a4' }}>
+            <p className="text-sm mt-3" style={{ color: 'var(--text-muted)' }}>
               €{tx.amount.toLocaleString('de-DE', { minimumFractionDigits: 2 })} → {tx.receiver?.fullName}
             </p>
           )}

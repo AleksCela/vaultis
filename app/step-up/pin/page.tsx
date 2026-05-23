@@ -50,32 +50,32 @@ function PinStepUpInner() {
               STEP-UP REQUIRED · PIN
             </div>
             <h1 className="font-serif text-2xl mb-1">Enter Your PIN</h1>
-            <p className="text-sm" style={{ color: '#8892a4' }}>
+            <p className="text-sm" style={{ color: 'var(--text-muted)' }}>
               Our fraud engine flagged this transfer as elevated-risk. A PIN step-up is required before it can proceed.
             </p>
           </div>
         </div>
 
         {/* Why this is happening */}
-        <div className="card p-4 space-y-2 text-xs" style={{ color: '#8892a4' }}>
-          <p className="font-semibold uppercase tracking-wider text-xs" style={{ color: '#c9a84c' }}>Why PIN Is Required</p>
+        <div className="card p-4 space-y-2 text-xs" style={{ color: 'var(--text-muted)' }}>
+          <p className="font-semibold uppercase tracking-wider text-xs" style={{ color: 'var(--blue)' }}>Why PIN Is Required</p>
           <div className="flex items-start gap-2">
             <span className="text-amber-400 shrink-0">⚠</span>
             <p>This transfer scored 31–55 on our 9-signal risk engine, triggering a mandatory PIN step-up under our fraud prevention policy.</p>
           </div>
           <div className="flex items-start gap-2">
-            <span style={{ color: '#c9a84c' }} className="shrink-0">⚖️</span>
-            <p><strong style={{ color: '#f0f0f0' }}>EU PSD2 SCA</strong> requires re-authentication for anomalous transactions. PIN = "something you know" in the SCA framework.</p>
+            <span style={{ color: 'var(--blue)' }} className="shrink-0">⚖️</span>
+            <p><strong style={{ color: 'var(--text)' }}>EU PSD2 SCA</strong> requires re-authentication for anomalous transactions. PIN = "something you know" in the SCA framework.</p>
           </div>
           <div className="flex items-start gap-2">
-            <span style={{ color: '#22c55e' }} className="shrink-0">🛡</span>
-            <p>Your PIN is stored as a <strong style={{ color: '#f0f0f0' }}>bcrypt hash</strong> — we verify the hash, never the raw value. It cannot be recovered or read by anyone.</p>
+            <span style={{ color: 'var(--green)' }} className="shrink-0">🛡</span>
+            <p>Your PIN is stored as a <strong style={{ color: 'var(--text)' }}>bcrypt hash</strong> — we verify the hash, never the raw value. It cannot be recovered or read by anyone.</p>
           </div>
         </div>
 
         <form onSubmit={handleSubmit} className="card p-6 space-y-4">
           <div>
-            <label className="block text-xs font-medium mb-1.5" style={{ color: '#8892a4' }}>4-Digit PIN</label>
+            <label className="block text-xs font-medium mb-1.5" style={{ color: 'var(--text-muted)' }}>4-Digit PIN</label>
             <input
               type="password"
               inputMode="numeric"
@@ -91,7 +91,7 @@ function PinStepUpInner() {
           </div>
 
           {error && (
-            <div className="text-sm px-3 py-2 rounded-lg" style={{ background: 'rgba(239,68,68,0.1)', color: '#ef4444', border: '1px solid rgba(239,68,68,0.2)' }}>
+            <div className="text-sm px-3 py-2 rounded-lg" style={{ background: 'rgba(239,68,68,0.1)', color: 'var(--red)', border: '1px solid rgba(239,68,68,0.2)' }}>
               {error}
             </div>
           )}
@@ -104,7 +104,7 @@ function PinStepUpInner() {
           </button>
         </form>
 
-        <p className="text-center text-xs" style={{ color: '#4a5568' }}>
+        <p className="text-center text-xs" style={{ color: 'var(--text-faint)' }}>
           GDPR Art. 6(1)(f) · bcrypt hashed · PSD2 SCA compliant
         </p>
       </div>

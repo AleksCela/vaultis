@@ -35,11 +35,11 @@ function BlockedInner() {
         <div className="text-center">
           <div className="text-4xl mb-4">🔍</div>
           <h1 className="font-serif text-2xl mb-2">Transfer Under Review</h1>
-          <p className="text-sm" style={{ color: '#8892a4' }}>
+          <p className="text-sm" style={{ color: 'var(--text-muted)' }}>
             Our team will review this transfer within minutes. You will be notified of the outcome.
           </p>
           {tx && (
-            <p className="text-sm mt-3" style={{ color: '#8892a4' }}>
+            <p className="text-sm mt-3" style={{ color: 'var(--text-muted)' }}>
               €{tx.amount.toLocaleString('de-DE', { minimumFractionDigits: 2 })} → {tx.receiver?.fullName}
             </p>
           )}
@@ -50,8 +50,8 @@ function BlockedInner() {
         )}
 
         {tx?.adminNote && (
-          <div className="card p-4 text-sm" style={{ color: '#8892a4' }}>
-            <span className="font-medium" style={{ color: '#f0f0f0' }}>Note: </span>
+          <div className="card p-4 text-sm" style={{ color: 'var(--text-muted)' }}>
+            <span className="font-medium" style={{ color: 'var(--text)' }}>Note: </span>
             {tx.adminNote}
           </div>
         )}
